@@ -13,7 +13,7 @@ import os
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pandas as pd
 
 def create_dataloaders(data_root='..',
                        batch_size=32,
