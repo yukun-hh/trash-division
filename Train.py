@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm  # 进度条，可选
 import matplotlib.pyplot as plt
-from model import Net
+from Model import Net
 
 def train_one_epoch(model, train_loader, criterion, optimizer, device, epoch):
     """训练一个epoch"""
