@@ -12,7 +12,7 @@ import torch.optim as optim
 from tqdm import tqdm  # 进度条，可选
 import matplotlib.pyplot as plt
 from Model import Net
-
+from Dataloader import create_dataloaders
 def train_one_epoch(model, train_loader, criterion, optimizer, device, epoch):
     """训练一个epoch"""
     model.train()  # 设置为训练模式
@@ -171,11 +171,16 @@ def plot_training_history(history):
 # ========== 使用示例 ==========
 if __name__ == '__main__':
     # 假设你的 dataloader 已经写好了
-    # train_loader = ...
-    # val_loader = ...
+    train_loader, val_loader, class_names = create_dataloaders(
+        data_root='../trash_division_data/ultimate_4_class/',  # 与trash-division同级文件夹
+        batch_size=32,  # 根据你的显存调整
+        image_size=256,  # 与你模型输入一致
+        num_workers=4,  # Windows 可能需设为 0
+        augment=True  # 训练时使用数据增强
+    )
 
     # 1. 创建模型
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'xpu' if torch.xpu.is_available() else 'cpu')
     model = Net().get_network()  # 根据你的 Net 类调整
     model = model.to(device)
 
