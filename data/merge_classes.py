@@ -1,12 +1,29 @@
+"""将原数据集合并为我们需要的四个大类
+    运行时先配置路径
+
+    author：
+    weikaiwen
+
+    厨余垃圾-1
+    可回收物-2
+    其他垃圾-3
+    有害垃圾-4
+    
+    未知-0
+"""
+
+
 import os
 import shutil
 
 # ================= 1. 配置你的路径 =================
 # 注意：请确保相对路径正确，以下为示例
-ORIGINAL_DATA_DIR = './garbage265'           # 原始数据集的目录
-NEW_DATA_DIR = './garbage_4_classes'         # 合并后的新目录
-CLASSNAME_FILE = './garbage265/classname.txt' # txt 文件的位置
+ORIGINAL_DATA_DIR = '/Users/weikaiwen/Desktop/trash_division_data'           # 原始数据集的目录
+NEW_DATA_DIR = '/Users/weikaiwen/Desktop/trash_division_data/ultimate_4_class'         # 合并后的新目录
+CLASSNAME_FILE = '/Users/weikaiwen/Desktop/trash_division_data/val/classname.txt' # txt 文件的位置
 # ===================================================
+
+
 
 def build_mapping():
     """让 Python 自动读取 txt 文件并建立映射字典"""
@@ -24,14 +41,24 @@ def build_mapping():
         # 用 '-' 把字符串一分为二：前面的做大类，后面的做小类
         big_class, small_class = line.split('-', 1)
         
-        # 核心：修复原数据集中的错别字 Bug
+        # 修改错别字
         if big_class == '其它垃圾':
             big_class = '其他垃圾'
             
-        # 为了绝对安全，我们把三种可能出现的文件夹名字全存进字典里：
+            
+        # 核心：变为数字分类
+        if big_class == '厨余垃圾':
+            big_class = '1'
+        elif big_class == '可回收物':
+            big_class = '2'
+        elif big_class == '其他垃圾':
+            big_class = '3'
+        else :
+            big_class = '4'
+        
+        
+        # 把文件夹名字全存进字典里：
         mapping[str(idx)] = big_class       # 应对文件夹名为数字 ID (如 '0') 的情况
-        mapping[line] = big_class           # 应对文件夹名为完整名称 (如 '厨余垃圾-八宝粥') 的情况
-        mapping[small_class] = big_class    # 应对文件夹名为小类名称 (如 '八宝粥') 的情况
         
     return mapping
 
@@ -59,7 +86,7 @@ def merge_dataset():
                 continue
                 
             # 核心：通过字典查询这个小类属于哪个大类
-            target_big_class = class_mapping.get(sub_class, "未知分类")
+            target_big_class = class_mapping.get(sub_class, "0")
             
             target_dir = os.path.join(new_split_dir, target_big_class)
             if not os.path.exists(target_dir):
