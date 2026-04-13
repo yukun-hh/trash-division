@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def create_dataloaders(data_root='..',
+def create_dataloaders(data_root='../trash_division_data/ultimate_4_class/',
                        batch_size=32,
                        image_size=256,
                        val_split=0.2,
@@ -111,9 +111,8 @@ def create_dataloaders(data_root='..',
     )
 
     # 4. 获取类别名称
-    class_names = train_dataset.classes if hasattr(train_dataset, 'classes') else ['0', '1', '2', '3']
+    class_names = train_dataset.classes
     print(f"类别: {class_names}")
-    print(f"类别映射: {train_dataset.class_to_idx if hasattr(train_dataset, 'class_to_idx') else '0-3'}")
 
     return train_loader, val_loader, class_names
 
@@ -158,7 +157,7 @@ def visualize_batch(dataloader, class_names, num_images=8):
 
 if __name__ == '__main__':
     train_loader, val_loader, class_names = create_dataloaders(
-        data_root='..',  # 与trash-division同级文件夹
+        data_root='../trash_division_data/ultimate_4_class/',  # 与trash-division同级文件夹
         batch_size=32,  # 根据你的显存调整
         image_size=256,  # 与你模型输入一致
         num_workers=4,  # Windows 可能需设为 0
