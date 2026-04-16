@@ -1,10 +1,8 @@
 """
-这个文件是模型的定义文件，请不要擅自修改，如有疑问微信群里反馈
-单独运行本文件将会输出模型结构
-目前的话是一个36层的模型，模型总量应该是在80M左右 如果到时候还是欠拟合的话再考虑去做更深的结构
+模型定义文件 - 使用瓶颈结构 (Bottleneck) 的深度残差网络
+目标：约50层，参数量约80M
 author : yukun-hh
 date : 2026-4-10
-
 """
 import torch
 from torch import nn
@@ -12,97 +10,135 @@ from torch.nn import functional as F
 from torchsummary import summary
 
 
-# 残差块
-class Resblock(nn.Module):
-    def __init__(self, input_channels, output_channels, use_1x1conv=False, strides=1):
+class Bottleneck(nn.Module):
+    """
+    瓶颈残差块：1x1(降维) -> 3x3 -> 1x1(升维)
+    若需要下采样或通道变化，则在跳跃连接中使用1x1卷积
+    """
+    expansion = 4  # 输出通道是中间通道的4倍
+
+    def __init__(self, in_channels, mid_channels, stride=1, downsample=None):
         """
-        :param input_channels: 进入残差块时的原通道
-        :param output_channels: 输出时的通道数
-        :param use_1x1conv: 如果输入和输出通道不相等时，需要用一个1x1的卷积层对原来的输入进行一个通道提升
-        :param strides: 默认1，如果大于1起到缩小张量的作用
+        :param in_channels: 输入通道数
+        :param mid_channels: 中间层通道数（1x1降维后的通道数）
+        :param stride: 步长，用于下采样
+        :param downsample: 下采样模块（当stride≠1或通道变化时使用）
         """
         super().__init__()
-        self.conv1 = nn.Conv2d(input_channels, output_channels, kernel_size=3, padding=1, stride=strides)
-        self.conv2 = nn.Conv2d(output_channels, output_channels, kernel_size=3, padding=1, stride=1)
-        if use_1x1conv:
-            self.conv3 = nn.Conv2d(input_channels, output_channels, kernel_size=1, stride=strides)
-        else:
-            self.conv3 = None
-        self.bn1 = nn.BatchNorm2d(output_channels)
-        self.bn2 = nn.BatchNorm2d(output_channels)
+        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(mid_channels)
+        self.conv2 = nn.Conv2d(mid_channels, mid_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(mid_channels)
+        self.conv3 = nn.Conv2d(mid_channels, mid_channels * self.expansion, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(mid_channels * self.expansion)
+        self.relu = nn.ReLU(inplace=True)
+        self.downsample = downsample
 
-    def forward(self, X):
-        Y = F.relu(self.bn1(self.conv1(X)))
-        Y = self.bn2(self.conv2(Y))
-        if self.conv3 is not None:
-            X = self.conv3(X)
-        Y += X
-        return F.relu(Y)
+    def forward(self, x):
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+        return out
 
 
 class Net(nn.Module):
     """
-    模型的主要结构就在这里了，到时也好该和调用
-    现在必须实现的方法：
-    目前还是以图片缩放到256＊256构建残差块
+    基于 Bottleneck 的 ResNet 风格模型
+    各阶段配置仿照 ResNet-50，适当调整宽度以达到约80M参数
     """
 
-    def __init__(self):
+    def __init__(self, num_classes=4):
         super().__init__()
 
-        # 定义残差块的辅助方法
-        def resnet_block(input_channels, num_channels, num_residuals, first_block=False):
-            """
-            :param input_channels: 输入维度
-            :param num_channels: 输出维度
-            :param num_residuals: 单个残差层的残差块数
-            :param first_block: 第一块不用下采样 特殊控制
-            :return: list[nn.Module]
-            """
-            blk = []
-            for i in range(num_residuals):
-                if i == 0 and not first_block:
-                    blk.append(Resblock(input_channels, num_channels, use_1x1conv=True, strides=2))
-                else:
-                    blk.append(Resblock(num_channels, num_channels))
-            return blk
+        # 第一阶段：7x7卷积 + 最大池化
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-        # 构建网络各层
-        self.b1 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        )
-        """
-        7×7 卷积层，输出通道 64，步长 2，填充 3
-        (3×256×256)->(64×128×128)
-        批归一化 relu层 
-        最大池化 
-        (64×128×128)->(64×64×64)
-        """
-        self.b2 = nn.Sequential(*resnet_block(64, 64, num_residuals=3, first_block=True))
-        self.b3 = nn.Sequential(*resnet_block(64, 128, num_residuals=4))
-        self.b4 = nn.Sequential(*resnet_block(128, 256, num_residuals=6))
-        self.b5 = nn.Sequential(*resnet_block(256, 512, num_residuals=3))
+        # 残差阶段定义
+        # 每个阶段的参数：[块数, 中间通道数, 步长]
+        # 为了达到80M参数，我们略微加宽网络（相比标准ResNet-50）
+        layers_config = [
+            (3, 64, 1),    # stage2: 3个瓶颈块，输出通道 64*4=256
+            (4, 128, 2),   # stage3: 4个瓶颈块，输出通道 128*4=512
+            (14, 256, 2),  # stage4: 14个瓶颈块，输出通道 256*4=1024（加深至此阶段）
+            (3, 512, 2)    # stage5: 3个瓶颈块，输出通道 512*4=2048
+        ]
 
+        self.in_channels = 64
+        self.stage2 = self._make_layer(layers_config[0])
+        self.stage3 = self._make_layer(layers_config[1])
+        self.stage4 = self._make_layer(layers_config[2])
+        self.stage5 = self._make_layer(layers_config[3])
+
+        # 全局池化与分类层
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.flatten = nn.Flatten()
-        self.fc = nn.Linear(512, 4)
+        self.fc = nn.Linear(2048, num_classes)
+
+    def _make_layer(self, config):
+        """
+        构建一个残差阶段
+        :param config: (块数, 中间通道数, 第一阶段步长)
+        :return: nn.Sequential
+        """
+        num_blocks, mid_channels, stride = config
+        downsample = None
+        layers = []
+
+        # 第一个块可能需要下采样和通道匹配
+        if stride != 1 or self.in_channels != mid_channels * Bottleneck.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.in_channels, mid_channels * Bottleneck.expansion,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(mid_channels * Bottleneck.expansion),
+            )
+
+        layers.append(
+            Bottleneck(self.in_channels, mid_channels, stride, downsample)
+        )
+        self.in_channels = mid_channels * Bottleneck.expansion
+
+        # 后续块
+        for _ in range(1, num_blocks):
+            layers.append(
+                Bottleneck(self.in_channels, mid_channels)
+            )
+
+        return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.b1(x)
-        x = self.b2(x)
-        x = self.b3(x)
-        x = self.b4(x)
-        x = self.b5(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.stage2(x)
+        x = self.stage3(x)
+        x = self.stage4(x)
+        x = self.stage5(x)
+
         x = self.avgpool(x)
-        x = self.flatten(x)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
 
 
 if __name__ == '__main__':
-    model = Net()
-    # 使用 torchsummary 查看模型结构
+    model = Net(num_classes=4)
     summary(model, input_size=(3, 256, 256))

@@ -80,7 +80,6 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
     # 1. 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()  # 多分类用交叉熵
 
-    # 优化器选择（推荐 Adam 或 SGD）
     # 或者使用 SGD + 动量
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
 
@@ -142,15 +141,15 @@ if __name__ == '__main__':
     # 假设你的 dataloader 已经写好了
     train_loader, val_loader, class_names = create_dataloaders(
         data_root='../trash_division_data/ultimate_4_class/',  # 与trash-division同级文件夹
-        batch_size=32,  # 根据你的显存调整
+        batch_size=16,  # 根据你的显存调整
         image_size=256,  # 与你模型输入一致
-        num_workers=4,  # Windows 可能需设为 0
+        num_workers=8,  # Windows 可能需设为 0
         augment=True  # 训练时使用数据增强
     )
 
     # 1. 创建模型
     device = torch.device('cuda' if torch.cuda.is_available() else 'xpu' if torch.xpu.is_available() else 'cpu')
-    model = Net()  # 根据你的 Net 类调整
+    model = Net(num_classes=4)  # 根据你的 Net 类调整
     model = model.to(device)
 
     # 打印模型信息
