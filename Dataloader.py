@@ -158,9 +158,9 @@ def visualize_batch(dataloader, class_names, num_images=8):
 if __name__ == '__main__':
     train_loader, val_loader, class_names = create_dataloaders(
         data_root='../trash_division_data/ultimate_4_class/',  # 与trash-division同级文件夹
-        batch_size=32,  # 根据你的显存调整
+        batch_size=16,  # 根据你的显存调整
         image_size=256,  # 与你模型输入一致
-        num_workers=4,  # Windows 可能需设为 0
+        num_workers=16,  # Windows 可能需设为 0
         augment=True  # 训练时使用数据增强
     )
     visualize_batch(train_loader, class_names, num_images=8)

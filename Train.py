@@ -81,14 +81,11 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
     criterion = nn.CrossEntropyLoss()  # 多分类用交叉熵
 
     # 优化器选择（推荐 Adam 或 SGD）
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     # 或者使用 SGD + 动量
-    # optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
 
     # 学习率调度器（可选，帮助收敛）
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
-    # 或者用余弦退火
-    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     # 2. 记录训练历史
     history = {
@@ -133,39 +130,11 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
             print(f'✓ 保存最佳模型 (Acc: {val_acc:.2f}%)')
 
     # 4. 绘制训练曲线
-    plot_training_history(history)
 
     print(f'\n{"=" * 50}')
     print(f'训练完成！最佳验证准确率: {best_val_acc:.2f}%')
 
     return model, history
-
-
-def plot_training_history(history):
-    """绘制训练曲线"""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-
-    # 损失曲线
-    ax1.plot(history['train_loss'], label='Train Loss')
-    ax1.plot(history['val_loss'], label='Val Loss')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Loss')
-    ax1.set_title('Training and Validation Loss')
-    ax1.legend()
-    ax1.grid(True)
-
-    # 准确率曲线
-    ax2.plot(history['train_acc'], label='Train Acc')
-    ax2.plot(history['val_acc'], label='Val Acc')
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Accuracy (%)')
-    ax2.set_title('Training and Validation Accuracy')
-    ax2.legend()
-    ax2.grid(True)
-
-    plt.tight_layout()
-    plt.savefig('training_history.png', dpi=150)
-    plt.show()
 
 
 # ========== 使用示例 ==========
@@ -181,7 +150,7 @@ if __name__ == '__main__':
 
     # 1. 创建模型
     device = torch.device('cuda' if torch.cuda.is_available() else 'xpu' if torch.xpu.is_available() else 'cpu')
-    model = Net().get_network()  # 根据你的 Net 类调整
+    model = Net()  # 根据你的 Net 类调整
     model = model.to(device)
 
     # 打印模型信息
