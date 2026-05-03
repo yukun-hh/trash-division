@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from Model import Net
 from Dataloader import create_dataloaders
 import os
+import csv
 
 
 def compute_macro_f1(predicted, targets, num_classes=4):
@@ -112,6 +113,9 @@ def freeze_base_layers(model):
     for name, param in model.stage2.named_parameters():
         param.requires_grad = False
         frozen_layers.append(f'stage2.{name}')
+    for name, param in model.stage3.named_parameters():
+        param.requires_grad = False
+        frozen_layers.append(f'stage3.{name}')
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
@@ -134,11 +138,16 @@ def finetune(model, train_loader, val_loader, epochs=30, lr=0.0001, device='cuda
     history = {
         'train_loss': [],
         'train_f1': [],
+        'train_acc': [],
         'val_loss': [],
-        'val_f1': []
+        'val_f1': [],
+        'val_acc': []
     }
 
     best_val_f1 = 0.0
+    log_file = open('finetune_log.csv', 'w', newline='')
+    log_writer = csv.writer(log_file)
+    log_writer.writerow(['epoch', 'train_loss', 'train_f1', 'train_acc', 'val_loss', 'val_f1', 'val_acc', 'lr', 'best'])
 
     for epoch in range(epochs):
         print(f'\n{"=" * 50}')
@@ -153,17 +162,25 @@ def finetune(model, train_loader, val_loader, epochs=30, lr=0.0001, device='cuda
 
         history['train_loss'].append(train_loss)
         history['train_f1'].append(train_f1)
+        history['train_acc'].append(train_acc)
         history['val_loss'].append(val_loss)
         history['val_f1'].append(val_f1)
+        history['val_acc'].append(val_acc)
 
         print(f'Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% | Train Macro-F1: {train_f1:.4f}')
         print(f'Val   Loss: {val_loss:.4f} | Val   Acc: {val_acc:.2f}% | Val   Macro-F1: {val_f1:.4f}')
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]:.6f}')
 
+        best_mark = ''
         if val_f1 > best_val_f1:
             best_val_f1 = val_f1
             torch.save(model.state_dict(), 'finetuned_model.pth')
+            best_mark = 'best'
             print(f'✓ 保存最佳微调模型 (Macro-F1: {val_f1:.4f})')
+
+        lr = optimizer.param_groups[0]['lr']
+        log_writer.writerow([epoch + 1, train_loss, train_f1, train_acc, val_loss, val_f1, val_acc, lr, best_mark])
+        log_file.flush()
 
     print(f'\n{"=" * 50}')
     print(f'微调完成！最佳验证 Macro-F1: {best_val_f1:.4f}')

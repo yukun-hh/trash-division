@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from Model import Net
 from Dataloader import create_dataloaders
 import os
+import csv
 
 
 def compute_macro_f1(predicted, targets, num_classes=4):
@@ -121,11 +122,16 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
     history = {
         'train_loss': [],
         'train_f1': [],
+        'train_acc': [],
         'val_loss': [],
-        'val_f1': []
+        'val_f1': [],
+        'val_acc': []
     }
 
     best_val_f1 = 0.0
+    log_file = open('training_log.csv', 'w', newline='')
+    log_writer = csv.writer(log_file)
+    log_writer.writerow(['epoch', 'train_loss', 'train_f1', 'train_acc', 'val_loss', 'val_f1', 'val_acc', 'lr', 'best'])
 
     # 3. 开始训练
     for epoch in range(epochs):
@@ -145,8 +151,10 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
         # 记录
         history['train_loss'].append(train_loss)
         history['train_f1'].append(train_f1)
+        history['train_acc'].append(train_acc)
         history['val_loss'].append(val_loss)
         history['val_f1'].append(val_f1)
+        history['val_acc'].append(val_acc)
 
         # 打印结果
         print(f'Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% | Train Macro-F1: {train_f1:.4f}')
@@ -154,10 +162,16 @@ def train(model, train_loader, val_loader, epochs=50, lr=0.001, device='cuda'):
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]:.6f}')
 
         # 保存最佳模型
+        best_mark = ''
         if val_f1 > best_val_f1:
             best_val_f1 = val_f1
             torch.save(model.state_dict(), 'best_model.pth')
+            best_mark = 'best'
             print(f'✓ 保存最佳模型 (Macro-F1: {val_f1:.4f})')
+
+        lr = optimizer.param_groups[0]['lr']
+        log_writer.writerow([epoch + 1, train_loss, train_f1, train_acc, val_loss, val_f1, val_acc, lr, best_mark])
+        log_file.flush()
 
     # 4. 绘制训练曲线
 
