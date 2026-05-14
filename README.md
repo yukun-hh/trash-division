@@ -18,6 +18,7 @@
 - [文件说明](#文件说明)
 - [目录结构](#目录结构)
 - [训练细节](#训练细节)
+- [评估与可视化](#评估与可视化)
 - [许可证](#许可证)
 
 ---
@@ -84,6 +85,7 @@
 - pandas
 - Pillow
 - torchsummary
+- scikit-learn（仅 `Evaluate.py` 需要）
 
 ## 快速开始
 
@@ -99,6 +101,19 @@
    python Train.py
    ```
 
+3. **微调模型**（可选，冻结浅层、微调深层）：
+
+   ```bash
+   python Finetune.py
+   ```
+
+4. **评估与可视化**：
+
+   ```bash
+   python Evaluate.py     # 混淆矩阵、ROC 曲线、PR 曲线
+   python Curve.py         # 训练过程的 loss/f1/acc/lr 曲线
+   ```
+
 > **注意**：
 > - 数据目录默认为 `../trash_division_data/ultimate_4_class/`，需先运行合并脚本
 > - Windows 系统需将 `num_workers` 设为 `0`（参见 `Dataloader.py` 和 `Train.py`）
@@ -109,10 +124,14 @@
 | 文件 | 功能 |
 |---|---|
 | `Train.py` | 训练主脚本，包含训练循环、验证、评估 |
+| `Finetune.py` | 微调脚本，冻结浅层后微调深层网络 |
 | `Dataloader.py` | 数据加载模块，包含 RobustImageFolder 和 DataLoader 创建 |
 | `Model.py` | 模型定义，ResNet-34（BasicBlock）+ Dropout |
 | `Merge_classes.py` | 数据集预处理，265 类合并为 4 类 |
-| `best_model.pth` | 训练好的最佳模型权重（约 125 MB） |
+| `Evaluate.py` | 模型评估，绘制混淆矩阵、ROC 曲线、PR 曲线 |
+| `Curve.py` | 训练曲线绘制，从 CSV 读取并绘制 loss/f1/acc/lr 曲线 |
+| `training_log.csv` | 训练日志，记录每轮 epoch 的 loss、f1、acc、lr |
+| `best_model.pth` | 训练好的最佳模型权重（约 125 MB，不纳入版本控制） |
 | `AGENTS.md` | AI 助手指南（开发辅助） |
 | `THIRD_PARTY_LICENSES.md` | 第三方数据集许可证声明 |
 
@@ -121,15 +140,23 @@
 ```
 trash-division/
 ├── AGENTS.md               # AI 助手指南
-├── best_model.pth           # 最佳模型权重
+├── best_model.pth           # 最佳模型权重（不纳入版本控制）
+├── Curve.py                 # 训练曲线绘制脚本
 ├── Dataloader.py            # 数据加载模块
+├── Evaluate.py              # 模型评估可视化脚本
+├── Finetune.py              # 微调脚本
 ├── .gitattributes           # Git 属性配置
 ├── LICENSE                  # MIT 许可证
 ├── Merge_classes.py         # 数据集预处理脚本
 ├── Model.py                 # 模型定义
 ├── README.md                # 项目说明（本文件）
 ├── THIRD_PARTY_LICENSES.md  # 第三方许可证声明
-└── Train.py                 # 训练主脚本
+├── Train.py                 # 训练主脚本
+├── training_log.csv         # 训练日志
+├── confusion_matrix.png     # 混淆矩阵（Evaluate.py 输出）
+├── roc_curve.png            # ROC 曲线（Evaluate.py 输出）
+├── pr_curve.png             # PR 曲线（Evaluate.py 输出）
+└── training_curves.png      # 训练曲线（Curve.py 输出）
 ```
 
 ## 训练细节
@@ -148,6 +175,43 @@ trash-division/
 | 断点续训 | 自动检测 best_model.pth 并加载 |
 
 训练时数据增强管线：RandomResizedCrop(256, scale=(0.8, 1.0)) + RandomHorizontalFlip(p=0.5) + RandomRotation(+-15 deg) + ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2)
+
+## 评估与可视化
+
+训练完成后，`training_log.csv` 会记录每个 epoch 的训练/验证指标。以下两个脚本用于可视化分析：
+
+### Evaluate.py — 模型评估
+
+在验证集上推理，生成三张评估图表：
+
+| 图表 | 说明 |
+|---|---|
+| `confusion_matrix.png` | 混淆矩阵，展示各类别的预测分布 |
+| `roc_curve.png` | ROC 曲线（One-vs-Rest），含各类别 AUC 和 Macro-avg AUC |
+| `pr_curve.png` | Precision-Recall 曲线，含各类别 Average Precision |
+
+```bash
+python Evaluate.py
+```
+
+脚本顶部的 `MODEL_PATH`、`DATA_ROOT`、`BATCH_SIZE`、`NUM_WORKERS` 可按需修改。
+
+### Curve.py — 训练曲线
+
+从 `training_log.csv` 读取训练日志，绘制四张子图：
+
+| 子图 | 说明 |
+|---|---|
+| Loss vs Epoch | 训练/验证损失曲线 |
+| F1 Score vs Epoch | 训练/验证宏平均 F1 曲线 |
+| Accuracy vs Epoch | 训练/验证准确率曲线 |
+| Learning Rate vs Epoch | 余弦退火学习率变化曲线 |
+
+```bash
+python Curve.py
+```
+
+输出文件为 `training_curves.png`。
 
 ## 许可证
 
