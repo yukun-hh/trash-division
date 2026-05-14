@@ -184,34 +184,33 @@ trash-division/
 
 在验证集上推理，生成三张评估图表：
 
-| 图表 | 说明 |
-|---|---|
-| `confusion_matrix.png` | 混淆矩阵，展示各类别的预测分布 |
-| `roc_curve.png` | ROC 曲线（One-vs-Rest），含各类别 AUC 和 Macro-avg AUC |
-| `pr_curve.png` | Precision-Recall 曲线，含各类别 Average Precision |
-
 ```bash
 python Evaluate.py
 ```
 
 脚本顶部的 `MODEL_PATH`、`DATA_ROOT`、`BATCH_SIZE`、`NUM_WORKERS` 可按需修改。
 
+**混淆矩阵**
+
+![confusion_matrix](confusion_matrix.png)
+
+**ROC 曲线**
+
+![roc_curve](roc_curve.png)
+
+**PR 曲线**
+
+![pr_curve](pr_curve.png)
+
 ### Curve.py — 训练曲线
 
 从 `training_log.csv` 读取训练日志，绘制四张子图：
-
-| 子图 | 说明 |
-|---|---|
-| Loss vs Epoch | 训练/验证损失曲线 |
-| F1 Score vs Epoch | 训练/验证宏平均 F1 曲线 |
-| Accuracy vs Epoch | 训练/验证准确率曲线 |
-| Learning Rate vs Epoch | 余弦退火学习率变化曲线 |
 
 ```bash
 python Curve.py
 ```
 
-输出文件为 `training_curves.png`。
+![training_curves](training_curves.png)
 
 ## 许可证
 
