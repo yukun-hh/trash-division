@@ -28,7 +28,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 # ============================================================
 MODEL_PATH  = 'best_model.pth'                                    # 模型权重路径
 DATA_ROOT   = '../trash_division_data/ultimate_4_class/'          # 数据集根目录
-BATCH_SIZE  = 64
+BATCH_SIZE  = 32
 IMAGE_SIZE  = 256
 NUM_WORKERS = 4
 # ============================================================
@@ -54,8 +54,7 @@ num_classes = len(class_names)
 print(f"类别: {class_names}")
 
 # ---------- 2. 加载模型 ----------
-device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
-print(device)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Net(num_classes=num_classes)
 state_dict = torch.load(MODEL_PATH, map_location=device)
 if 'model_state_dict' in state_dict:
