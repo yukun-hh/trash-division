@@ -123,6 +123,7 @@
 
 | 文件 | 功能 |
 |---|---|
+| `Baseline.py` | 基线模型，VGG16 预训练特征提取 + KNN 四分类 |
 | `Train.py` | 训练主脚本，包含训练循环、验证、评估 |
 | `Finetune.py` | 微调脚本，冻结浅层后微调深层网络 |
 | `Dataloader.py` | 数据加载模块，包含 RobustImageFolder 和 DataLoader 创建 |
@@ -140,6 +141,7 @@
 ```
 trash-division/
 ├── AGENTS.md               # AI 助手指南
+├── Baseline.py              # 基线模型脚本
 ├── best_model.pth           # 最佳模型权重（不纳入版本控制）
 ├── Curve.py                 # 训练曲线绘制脚本
 ├── Dataloader.py            # 数据加载模块

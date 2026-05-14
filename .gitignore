@@ -7,6 +7,7 @@
 !/README.md
 !/THIRD_PARTY_LICENSES.md
 !/Train.py
+!/Baseline.py
 !/AGENTS.md
 !/Finetune.py
 !/Curve.py
