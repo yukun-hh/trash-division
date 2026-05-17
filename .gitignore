@@ -18,6 +18,9 @@
 !/baseline/compare_models.py
 !/baseline/ResNet34_Pretrained_10pct.py
 !/baseline/HOG_Baseline.py
+!/baseline/roc_comparison.png
+!/baseline/pr_comparison.png
+!/baseline/accuracy_bar.png
 !/training_log.csv
 !/confusion_matrix.png
 !/roc_curve.png
