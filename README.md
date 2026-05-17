@@ -75,18 +75,9 @@
 
 ## 环境要求
 
-本项目无 `requirements.txt`，需手动安装以下依赖：
-
-- Python 3.8+
-- PyTorch（推荐 1.10+）
-- torchvision
-- tqdm
-- matplotlib
-- pandas
-- Pillow
-- torchsummary
-- scikit-learn（仅 `Evaluate.py` 需要）
-- scikit-image（仅 `baseline/HOG_Baseline.py` 需要）
+```bash
+pip install -r requirements.txt
+```
 
 ## 快速开始
 
