@@ -79,6 +79,11 @@
 pip install -r requirements.txt
 ```
 
+> **注意**：`requirements.txt` 不锁定 PyTorch 的 CUDA / XPU 版本，请根据硬件自行安装对应版本，例如：
+> - NVIDIA GPU：`pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121`
+> - Intel GPU (XPU)：参考 [Intel Extension for PyTorch](https://intel.github.io/intel-extension-for-pytorch/) 安装
+> - CPU：`pip install torch torchvision` 即可
+
 ## 快速开始
 
 1. **数据预处理**：将 265 个子类别合并为 4 个顶级类别
