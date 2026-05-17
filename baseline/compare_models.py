@@ -239,7 +239,7 @@ if __name__ == '__main__':
     for bar, acc in zip(bars, accs):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.005,
                 f'{acc:.4f}', ha='center', va='bottom', fontsize=12, fontweight='bold')
-    ax.set_ylim(0, max(accs) * 1.15)
+    ax.set_ylim(min(accs) - 0.03, max(accs) * 1.08)
     ax.set_ylabel('Accuracy'); ax.set_title('Accuracy Comparison', fontsize=14)
     ax.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
