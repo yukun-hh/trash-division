@@ -17,6 +17,7 @@
 !/baseline/VGG_KNN.py
 !/baseline/compare_models.py
 !/baseline/ResNet34_Pretrained_10pct.py
+!/baseline/HOG_Baseline.py
 !/training_log.csv
 !/confusion_matrix.png
 !/roc_curve.png

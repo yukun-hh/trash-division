@@ -26,6 +26,7 @@ from Model import Net
 from Dataloader import RobustImageFolder
 from baseline.VGG_KNN import VGGKNNBaseline
 from baseline.ResNet34_Pretrained_10pct import get_resnet34_10pct_preds
+from baseline.HOG_Baseline import get_hog_lr_preds
 
 matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans']
 matplotlib.rcParams['axes.unicode_minus'] = False
@@ -81,9 +82,10 @@ def get_vgg_knn_preds(train_loader, val_loader, device):
 # ============================================================
 
 MODELS = [
-    ('ResNet-34',                get_resnet34_preds),
-    ('ResNet-34 (10% Fine-tune)', get_resnet34_10pct_preds),
-    ('VGG16 + KNN  (K=5)',       get_vgg_knn_preds),
+    ('ResNet-34',                  get_resnet34_preds),
+    ('ResNet-34 (10% Fine-tune)',  get_resnet34_10pct_preds),
+    ('VGG16 + KNN  (K=5)',        get_vgg_knn_preds),
+    ('HOG + LogisticRegression',   get_hog_lr_preds),
     # 未来轻松扩展示例：
     # ('ResNet-18 (pretrained)', get_resnet18_preds),
     # ('ResNet-50 (pretrained)', get_resnet50_preds),
