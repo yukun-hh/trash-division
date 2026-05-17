@@ -64,9 +64,7 @@ class HOGLRBaseline:
         self.data_root = data_root
         self.image_size = image_size
         self.clf = LogisticRegression(
-            C=1.0, max_iter=1000,
-            multi_class='multinomial', solver='lbfgs',
-            n_jobs=-1,
+            C=1.0, max_iter=1000, solver='lbfgs', n_jobs=-1,
         )
 
     def _load_data(self, split):
