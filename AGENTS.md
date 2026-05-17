@@ -2,23 +2,25 @@
 
 ## Project
 
-CNN-based garbage classification (4 classes: 厨余垃圾/可回收物/其他垃圾/有害垃圾). ResNet-34 architecture, ~21M params, 256×256 RGB input, ~900 lines across 8 Python files. No package structure.
+CNN-based garbage classification (4 classes: 厨余垃圾/可回收物/其他垃圾/有害垃圾). ResNet-34 architecture, ~21M params, 256×256 RGB input, ~900 lines across 11 Python files. No package structure.
 
 ## Pipeline (order matters)
 
 ```bash
-python Merge_classes.py   # merges 265 → 4 classes, creates ../trash_division_data/ultimate_4_class/
-python Train.py           # trains the model, saves best_model.pth + training_log.csv
-python Finetune.py        # optional: freezes early layers, saves finetuned_model.pth + finetune_log.csv
-python Evaluate.py        # plots confusion matrix / ROC / PR curves from best_model.pth
-python Curve.py           # plots loss/f1/acc/lr curves from training_log.csv
+python Merge_classes.py                 # merges 265 → 4 classes, creates ../trash_division_data/ultimate_4_class/
+python Train.py                         # trains the model, saves best_model.pth + training_log.csv
+python Finetune.py                      # optional: freezes early layers, saves finetuned_model.pth + finetune_log.csv
+python Evaluate.py                      # plots confusion matrix / ROC / PR curves from best_model.pth
+python Curve.py                         # plots loss/f1/acc/lr curves from training_log.csv
+python baseline/VGG_KNN.py             # VGG16 feature extraction + KNN baseline
+python baseline/compare_models.py      # compares multiple models (ROC + accuracy bar chart)
 ```
 
 Also usable standalone: `python Model.py` prints `torchsummary` parameter summary.
 
 ## Dependencies
 
-No `requirements.txt` — install manually: `torch`, `torchvision`, `tqdm`, `matplotlib`, `pandas`, `Pillow`, `torchsummary`. `Evaluate.py` additionally needs `scikit-learn`.
+No `requirements.txt` — install manually: `torch`, `torchvision`, `tqdm`, `matplotlib`, `pandas`, `Pillow`, `torchsummary`. `Evaluate.py` and `baseline/*.py` additionally need `scikit-learn`.
 
 ## Data setup
 
@@ -26,7 +28,7 @@ Data expected **outside repo** at `../trash_division_data/` (sibling dir). `Merg
 
 ## .gitignore — whitelist pattern
 
-`.gitignore` uses `*` (ignore everything) then un-ignores specific files with `!` patterns. **Any new file you add to the repo must be explicitly whitelisted** or it will be invisible to git. The current whitelist: `Dataloader.py`, `LICENSE`, `Merge_classes.py`, `Model.py`, `README.md`, `THIRD_PARTY_LICENSES.md`, `Train.py`, `.gitattributes`, `.gitignore`.
+`.gitignore` uses `*` (ignore everything) then un-ignores specific files with `!` patterns. **Any new file you add to the repo must be explicitly whitelisted** or it will be invisible to git. The current whitelist includes: `Dataloader.py`, `LICENSE`, `Merge_classes.py`, `Model.py`, `README.md`, `THIRD_PARTY_LICENSES.md`, `Train.py`, `.gitattributes`, `.gitignore`, plus `Finetune.py`, `Curve.py`, `Evaluate.py`, `AGENTS.md`, 4× output PNG, `training_log.csv`, and `baseline/`.
 
 `best_model.pth` and `finetuned_model.pth` are **untracked** (~125 MB each) — back them up manually if needed. `Finetune.py`, `Curve.py`, `Evaluate.py`, `AGENTS.md`, `training_log*.csv`, and `finetune_log.csv` are also untracked (not in whitelist).
 
@@ -59,6 +61,16 @@ Data expected **outside repo** at `../trash_division_data/` (sibling dir). `Merg
 - Loads model from `best_model.pth` by default; handles both bare state_dict and `model_state_dict`/`model` key wrappers
 - Saves `confusion_matrix.png`, `roc_curve.png`, `pr_curve.png`
 - Requires `scikit-learn`
+
+### baseline/ (VGG_KNN.py + compare_models.py)
+
+- `baseline/VGG_KNN.py` can run standalone (`python baseline/VGG_KNN.py`) or be imported from `compare_models.py`
+- Uses `sys.path.insert` at top so it can import root-level modules (`Model`, `Dataloader`) from subdirectory
+- `compare_models.py` has a `MODELS` registry list — add new models by writing a `get_xxx_preds(train_loader, val_loader, device)` function and adding one line to the list; no plot code changes needed
+- VGG16 feature dimension: 25088 (512 channels × 7×7 avgpool)
+- KNN uses `predict_proba` (neighbor voting proportions) for ROC curves — coarse-grained but valid AUC
+- Output: `baseline/roc_comparison.png`, `baseline/accuracy_bar.png`, `baseline/vgg_knn_confusion_matrix.png`
+- Compare scripts output images to `baseline/` dir (not repo root)
 
 ## Model architecture reference
 

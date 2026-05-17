@@ -12,6 +12,10 @@
 !/Finetune.py
 !/Curve.py
 !/Evaluate.py
+!/baseline/
+!/baseline/__init__.py
+!/baseline/VGG_KNN.py
+!/baseline/compare_models.py
 !/training_log.csv
 !/confusion_matrix.png
 !/roc_curve.png
