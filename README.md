@@ -138,14 +138,12 @@
 | `baseline/compare_models.py` | 多模型对比（ROC / PR 曲线 + 准确率柱状图） |
 | `training_log.csv` | 训练日志，记录每轮 epoch 的 loss、f1、acc、lr |
 | `best_model.pth` | 训练好的最佳模型权重（约 125 MB，不纳入版本控制） |
-| `AGENTS.md` | AI 助手指南（开发辅助） |
 | `THIRD_PARTY_LICENSES.md` | 第三方数据集许可证声明 |
 
 ## 目录结构
 
 ```
 trash-division/
-├── AGENTS.md               # AI 助手指南
 ├── baseline/                # 基线模型目录
 │   ├── VGG_KNN.py           # VGG16 + KNN 分类脚本
 │   ├── ResNet34_Pretrained_10pct.py  # ResNet-34 ImageNet 预训练 + 10% 微调
