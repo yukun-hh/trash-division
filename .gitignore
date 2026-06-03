@@ -8,7 +8,9 @@
 !/requirements.txt
 !/THIRD_PARTY_LICENSES.md
 !/Train.py
-!/app.py
+!/web/
+!/web/app.py
+!/web/README.md
 !/Baseline.py
 !/Finetune.py
 !/Curve.py

@@ -1,8 +1,16 @@
+import sys
+import os
+# 确保可以从 web/ 目录或项目根目录运行，都能找到 Model.py 和 best_model.pth
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import gradio as gr
 import torch
 from torchvision import transforms
 from PIL import Image
 from Model import Net  # 根据上传的 Model.py，模型类名为 Net
+
+# 项目根目录（web/ 的上一级）
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 1. 基础配置与类别映射
 # 根据 Merge_classes.py，1=厨余垃圾, 2=可回收物, 3=其他垃圾, 4=有害垃圾
@@ -16,7 +24,8 @@ print(f"当前使用的推理设备: {device}")
 model = Net(num_classes=4)
 try:
     # 采用与 Evaluate.py 一致的健壮加载方式
-    state_dict = torch.load('best_model.pth', map_location=device)
+    model_path = os.path.join(PROJECT_ROOT, 'best_model.pth')
+    state_dict = torch.load(model_path, map_location=device)
     if 'model_state_dict' in state_dict:
         state_dict = state_dict['model_state_dict']
     elif 'model' in state_dict:
