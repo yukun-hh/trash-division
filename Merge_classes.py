@@ -1,5 +1,5 @@
 """将原数据集合并为我们需要的四个大类
-    运行时先配置路径
+    已修改成相对路径 具体配置方法详见README.md
 
     author：
     weikaiwen
@@ -18,9 +18,9 @@ import shutil
 
 # ================= 1. 配置你的路径 =================
 # 注意：请确保相对路径正确，以下为示例
-ORIGINAL_DATA_DIR = '/Users/weikaiwen/Desktop/trash_division_data'           # 原始数据集的目录
-NEW_DATA_DIR = '/Users/weikaiwen/Desktop/trash_division_data/ultimate_4_class'         # 合并后的新目录
-CLASSNAME_FILE = '/Users/weikaiwen/Desktop/trash_division_data/val/classname.txt' # txt 文件的位置
+ORIGINAL_DATA_DIR = '../trash_division_data'           # 原始数据集的目录
+NEW_DATA_DIR = '../trash_division_data/ultimate_4_class'         # 合并后的新目录
+CLASSNAME_FILE = '../trash_division_data/val/classname.txt' # txt 文件的位置
 # ===================================================
 
 
