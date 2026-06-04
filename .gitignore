@@ -24,6 +24,8 @@
 !/baseline/roc_comparison.png
 !/baseline/pr_comparison.png
 !/baseline/accuracy_bar.png
+!/web/
+!/web/online.jpg
 !/training_log.csv
 !/confusion_matrix.png
 !/roc_curve.png
